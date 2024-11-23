@@ -16,14 +16,21 @@ module.exports = {
         }
 
         const embed = new EmbedBuilder()
-            .setTitle('Music Queue')
+            .setTitle('🎵 Music Queue')
             .setColor('#FF0000');
 
-        const queueList = queue.songs.map((song, index) => 
-            `${index + 1}. ${song.title} | Requested by: ${song.requester}`
-        );
+        // Format queue list with requester info
+        const queueList = queue.songs.map((song, index) => {
+            const prefix = index === 0 ? '**Now Playing:**' : `**${index}.** `;
+            return `${prefix} ${song.title} | Requested by: ${song.requester}`;
+        });
 
         embed.setDescription(queueList.join('\n'));
+        
+        if (queue.songs.length > 1) {
+            embed.setFooter({ text: `${queue.songs.length} songs in queue` });
+        }
+
         message.reply({ embeds: [embed] });
     }
 };

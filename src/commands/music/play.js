@@ -14,7 +14,7 @@ module.exports = {
         '!play https://www.youtube.com/watch?v=dQw4w9WgXcQ',
         '!play never gonna give you up'
     ],
-    
+
     category: 'music',
     async execute(message, args) {
         try {
@@ -53,7 +53,7 @@ module.exports = {
             if (songInfo) {
                 const song = {
                     ...songInfo,
-                    requester: message.author.tag
+                    requester: message.author.globalName
                 };
 
                 const added = queueManager.addSong(message.guild.id, song);
