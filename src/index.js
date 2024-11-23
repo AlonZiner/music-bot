@@ -4,20 +4,9 @@ const commandHandler = require('./handlers/commandHandler');
 const { prefix } = require('./config/botConfig');
 const fs = require('fs');
 const path = require('path');
-const play = require('play-dl');
 
 async function initializeBot() {
     try {
-        // Initialize play-dl
-        await play.setToken({
-            youtube: {
-                cookie: '',
-                id: true,
-                token: true
-            },
-            spotify: false
-        });
-
         const client = new Client({
             intents: [
                 GatewayIntentBits.Guilds,

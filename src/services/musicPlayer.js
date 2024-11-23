@@ -58,19 +58,34 @@ class MusicPlayer {
             if (!voiceChannel) {
                 throw new Error('You must be in a voice channel!');
             }
-
+    
+            console.log(`Attempting to join voice channel in server: ${message.guild.name}`);
+            console.log(`Voice channel: ${voiceChannel.name}`);
+            console.log(`Guild ID: ${message.guild.id}`);
+            
+            // Check permissions explicitly
+            const permissions = voiceChannel.permissionsFor(message.client.user);
+            if (!permissions.has('Connect') || !permissions.has('Speak')) {
+                console.log(`Missing permissions in ${message.guild.name}:`);
+                console.log(`Can Connect: ${permissions.has('Connect')}`);
+                console.log(`Can Speak: ${permissions.has('Speak')}`);
+                throw new Error('I need permissions to join and speak in your voice channel!');
+            }
+    
             const connection = joinVoiceChannel({
                 channelId: voiceChannel.id,
                 guildId: voiceChannel.guild.id,
                 adapterCreator: voiceChannel.guild.voiceAdapterCreator,
             });
-
+    
             const queue = queueManager.createQueue(voiceChannel.guild.id);
             queue.connection = connection;
             
+            console.log(`Successfully joined voice channel in ${message.guild.name}`);
+            
             return connection;
         } catch (error) {
-            console.error('Error joining channel:', error);
+            console.error(`Error joining channel in ${message.guild?.name}:`, error);
             throw error;
         }
     }
