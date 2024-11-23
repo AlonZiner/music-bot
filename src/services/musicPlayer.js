@@ -110,9 +110,16 @@ class MusicPlayer {
             const stream = ytdl(song.url, {
                 filter: 'audioonly',
                 quality: 'lowestaudio',
-                highWaterMark: 1 << 25
+                highWaterMark: 1 << 25,
+                requestOptions: {
+                    maxRetries: 3,
+                    maxReconnects: 3,
+                    headers: {
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+                    }
+                }
             });
-
+            
             const resource = createAudioResource(stream, {
                 inlineVolume: true
             });
