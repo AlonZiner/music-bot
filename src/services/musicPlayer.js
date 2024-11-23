@@ -5,7 +5,7 @@ const {
     AudioPlayerStatus,
     NoSubscriberBehavior
 } = require('@discordjs/voice');
-const ytdl = require('@distube/ytdl-core');
+const play = require('play-dl'); 
 const queueManager = require('./queueManager');
 const ytpl = require('youtube-playlist');
 const { MAX_PLAYLIST_SIZE } = require('../config/botConfig'); 

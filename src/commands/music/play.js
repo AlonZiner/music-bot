@@ -3,7 +3,7 @@ const musicPlayer = require('../../services/musicPlayer');
 const queueManager = require('../../services/queueManager');
 const youtubeService = require('../../services/youtubeService');
 const { MAX_MIX_SIZE } = require('../../config/botConfig');
-const ytdl = require('@distube/ytdl-core');
+const play = require('play-dl'); 
 
 module.exports = {
     name: 'play',
@@ -31,7 +31,7 @@ module.exports = {
             }
 
             // Check if input is a URL or search query
-            if (ytdl.validateURL(input)) {
+            if (play.validate(input)) {
                 // Handle URL (Mix or single video)
                 if (youtubeService.isMixPlaylist(input)) {
                     // ... existing Mix playlist handling ...
