@@ -67,7 +67,7 @@ module.exports = {
                 const queue = queueManager.getQueue(message.guild.id);
                 if (!queue.playing) {
                     queue.playing = true;
-                    await musicPlayer.playSong(message.guild.id, song);
+                    await musicPlayer.playSong(message.guild.id, song, message.channel);
                 }
             }
 

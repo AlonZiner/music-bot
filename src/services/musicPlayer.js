@@ -9,6 +9,7 @@ const ytdl = require('@distube/ytdl-core');
 const queueManager = require('./queueManager');
 const ytpl = require('youtube-playlist');
 const { MAX_PLAYLIST_SIZE } = require('../config/botConfig'); 
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 class MusicPlayer {
     constructor() {
@@ -101,43 +102,94 @@ class MusicPlayer {
         }
     }
 
-    async playSong(guildId, song) {
+    async playSong(guildId, song, textChannel) {
         try {
-            console.log('Starting playSong function...');
             const queue = queueManager.getQueue(guildId);
-            if (!queue) {
-                console.log('No queue found');
-                return false;
-            }
-    
-            console.log('Creating stream for:', song.url);
+            if (!queue) return false;
+
             const stream = ytdl(song.url, {
                 filter: 'audioonly',
                 quality: 'lowestaudio',
                 highWaterMark: 1 << 25
             });
-    
-            console.log('Creating audio resource...');
+
             const resource = createAudioResource(stream, {
                 inlineVolume: true
             });
             
             if (queue.connection) {
-                console.log('Subscribing to audio player...');
                 queue.connection.subscribe(this.audioPlayer);
             } else {
                 console.log('No connection found in queue');
                 return false;
             }
-    
-            console.log('Playing resource...');
+
             this.audioPlayer.play(resource);
             queue.playing = true;
-    
-            console.log('Playback initiated');
+
+            // Send message with buttons if textChannel is provided
+            if (textChannel) {
+                const embed = new EmbedBuilder()
+                    .setTitle('🎵 Now Playing')
+                    .setDescription(`**${song.title}**\nRequested by: ${song.requester}`)
+                    .setColor('#FF0000');
+
+                const row = new ActionRowBuilder()
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setCustomId('pauseresume')
+                            .setEmoji('⏯️')
+                            .setStyle(ButtonStyle.Primary),
+                        new ButtonBuilder()
+                            .setCustomId('skip')
+                            .setEmoji('⏭️')
+                            .setStyle(ButtonStyle.Secondary)
+                    );
+
+                const message = await textChannel.send({
+                    embeds: [embed],
+                    components: [row]
+                });
+
+                // Create button collector
+                const collector = message.createMessageComponentCollector({
+                    time: 3600000 // 1 hour
+                });
+
+                collector.on('collect', async interaction => {
+                    const queue = queueManager.getQueue(interaction.guildId);
+                    if (!queue) return;
+
+                    switch (interaction.customId) {
+                        case 'pauseresume':
+                            if (queue.playing) {
+                                this.audioPlayer.pause();
+                                queue.playing = false;
+                                await interaction.reply('⏸️ Paused!');
+                            } else {
+                                this.audioPlayer.unpause();
+                                queue.playing = true;
+                                await interaction.reply('▶️ Resumed!');
+                            }
+                            break;
+                        case 'skip':
+                            // Skip current song regardless of queue status
+                            queue.songs.shift();
+                            if (queue.songs.length > 0) {
+                                this.playSong(interaction.guildId, queue.songs[0], textChannel);
+                            } else {
+                                queue.playing = false;
+                                this.stop(interaction.guildId);
+                            }
+                            await interaction.reply('⏭️ Skipped!');
+                            break;
+                    }
+                });
+            }
+
             return true;
         } catch (error) {
-            console.error('Error in playSong:', error);
+            console.error('Error playing song:', error);
             throw error;
         }
     }
