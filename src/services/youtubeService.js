@@ -1,10 +1,10 @@
-const play = require('play-dl'); 
+const ytdl = require('@distube/ytdl-core');
 const YouTube = require('youtube-sr').default;
 
 class YouTubeService {
     async getVideoInfo(url) {
         try {
-            const songInfo = await play.getInfo(url);
+            const songInfo = await ytdl.getInfo(url);
             return {
                 title: songInfo.videoDetails.title,
                 url: url,
@@ -22,7 +22,7 @@ class YouTubeService {
             const songs = [initialVideo];
             
             // Get related videos from the initial video
-            const info = await play.getInfo(url);
+            const info = await ytdl.getInfo(url);
             const relatedVideos = info.related_videos;
 
             // Add related videos up to maxSongs
@@ -67,7 +67,7 @@ class YouTubeService {
 
     async getRelatedSongs(videoUrl, maxSongs = 10) {
         try {
-            const info = await play.getInfo(videoUrl);
+            const info = await ytdl.getInfo(videoUrl);
             const relatedVideos = info.related_videos.filter(video => video.id !== currentVideoId);;
             const songs = [];
 
