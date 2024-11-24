@@ -1,14 +1,62 @@
+require('dotenv').config();
 const ytdl = require('@distube/ytdl-core');
 const YouTube = require('youtube-sr').default;
 
 class YouTubeService {
+
+    extractVideoId(url) {
+        try {
+            const parsedUrl = new URL(url);
+            if (parsedUrl.hostname === 'www.youtube.com' || parsedUrl.hostname === 'youtube.com') {
+                return parsedUrl.searchParams.get('v'); // Extract the 'v' parameter
+            } else if (parsedUrl.hostname === 'youtu.be') {
+                return parsedUrl.pathname.substring(1); // Extract from path
+            } else {
+                throw new Error('Not a valid YouTube URL');
+            }
+        } catch (error) {
+            console.error('Error extracting videoId:', error.message);
+            return null;
+        }
+    }
+    
+    // Function to fetch video details using YouTube Data API
+    async getYouTubeVideoInfo(videoId) {
+        const apiKey = process.env.YOUTUBE_API_KEY
+        const url = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=${apiKey}&part=snippet,contentDetails,statistics`;
+    
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+    
+            if (data.items && data.items.length > 0) {
+                return data.items[0]; // Return the video details
+            } else {
+                throw new Error('Video not found or API limit reached.');
+            }
+        } catch (error) {
+            console.error('Error fetching video info:', error.message);
+            return null;
+        }
+    }
+
     async getVideoInfo(url) {
         try {
-            const songInfo = await ytdl.getInfo(url);
+            console.log("BEFORE DYNAMIC IMPORT");
+            const fetch = import('node-fetch');
+            const URL = import('url');
+            const videoId = this.extractVideoId(url);
+            console.log("VIDEO ID:", videoId);
+            const info = await this.getYouTubeVideoInfo(videoId)
+            console.log("NEW INFO");
+            console.log(info);
+            
+
+            // const songInfo = await ytdl.getInfo(url);
             return {
-                title: songInfo.videoDetails.title,
+                title: videoInfo.snippet.title,
                 url: url,
-                duration: songInfo.videoDetails.lengthSeconds
+                duration: videoInfo.contentDetails.duration
             };
         } catch (error) {
             console.error('Error getting video info:', error);
